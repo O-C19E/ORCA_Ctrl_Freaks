@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ORCA — Marine Ecosystem Reasoning with Collaborative Agents</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Newsreader:ital,wght@0,400;0,500;1,400;1,500&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#F5F8F5;
+    --panel:#EBF1EC;
+    --ink:#0F2620;
+    --ink-soft:#4A625A;
+    --teal:#1B7A8C;
+    --teal-deep:#125764;
+    --amber:#D98C3F;
+    --line:#C6D8D0;
+    --ok:#3E8E5A;
+    --no:#B5533F;
+    --paper:#FFFFFF;
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--ink);
+    font-family:'Newsreader', serif;
+    font-size:17px;
+    line-height:1.55;
+    -webkit-font-smoothing:antialiased;
+  }
+  h1,h2,h3,.display{
+    font-family:'Space Grotesk', sans-serif;
+    font-weight:600;
+    letter-spacing:-0.01em;
+    color:var(--ink);
+    margin:0;
+  }
+  .mono{
+    font-family:'IBM Plex Mono', monospace;
+    letter-spacing:0.02em;
+  }
+  .eyebrow{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:12.5px;
+    letter-spacing:0.14em;
+    text-transform:uppercase;
+    color:var(--teal-deep);
+    display:flex;
+    align-items:center;
+    gap:8px;
+    margin-bottom:14px;
+  }
+  .eyebrow::before{
+    content:"";
+    width:18px;
+    height:1px;
+    background:var(--teal-deep);
+    display:inline-block;
+  }
+  a{color:var(--teal-deep);}
+
+  /* ---- chart frame chrome ---- */
+  .chart-frame{
+    border:1px solid var(--line);
+    position:relative;
+  }
+  .chart-frame::before, .chart-frame::after,
+  .tick-tl, .tick-tr, .tick-bl, .tick-br{
+    content:"";
+    position:absolute;
+    width:9px; height:9px;
+    border:1px solid var(--teal-deep);
+  }
+  .tick-tl{top:-1px; left:-1px; border-right:none; border-bottom:none;}
+  .tick-tr{top:-1px; right:-1px; border-left:none; border-bottom:none;}
+  .tick-bl{bottom:-1px; left:-1px; border-right:none; border-top:none;}
+  .tick-br{bottom:-1px; right:-1px; border-left:none; border-top:none;}
+
+  header.top{
+    position:sticky; top:0; z-index:20;
+    background:rgba(245,248,245,0.92);
+    backdrop-filter:blur(6px);
+    border-bottom:1px solid var(--line);
+    padding:14px 28px;
+    display:flex; align-items:center; justify-content:space-between;
+  }
+  header.top .brand{
+    font-family:'Space Grotesk', sans-serif;
+    font-weight:700; font-size:18px; letter-spacing:0.01em;
+    display:flex; align-items:center; gap:10px;
+  }
+  header.top .brand .dot{width:9px;height:9px;border-radius:50%;background:var(--teal);}
+  header.top nav{display:flex; gap:22px; font-family:'IBM Plex Mono',monospace; font-size:12.5px; text-transform:uppercase; letter-spacing:0.08em;}
+  header.top nav a{color:var(--ink-soft); text-decoration:none;}
+  header.top nav a:hover{color:var(--teal-deep);}
+
+  section{padding:78px 28px;}
+  .wrap{max-width:1080px; margin:0 auto;}
+
+  /* HERO */
+  .hero{padding-top:56px; padding-bottom:20px;}
+  .hero-grid{display:grid; grid-template-columns:1.05fr 0.95fr; gap:48px; align-items:center;}
+  .hero h1{font-size:clamp(46px,7vw,84px); line-height:0.95; margin-bottom:18px;}
+  .hero h1 span{color:var(--teal);}
+  .hero .lede{font-size:19px; color:var(--ink-soft); max-width:46ch; margin-bottom:26px;}
+  .hero .tagchips{display:flex; flex-wrap:wrap; gap:8px;}
+  .chip{
+    font-family:'IBM Plex Mono',monospace; font-size:11.5px; letter-spacing:0.04em;
+    padding:6px 10px; border:1px solid var(--line); border-radius:100px;
+    color:var(--ink-soft); background:var(--paper);
+  }
+
+  /* Signature coastline map */
+  .coast-card{background:var(--paper); padding:20px; position:relative;}
+  .coast-card svg{width:100%; height:auto; display:block;}
+  .coast-caption{
+    display:flex; justify-content:space-between; align-items:center;
+    margin-top:14px; font-family:'IBM Plex Mono',monospace; font-size:11px; color:var(--ink-soft);
+  }
+  .legend{display:flex; gap:14px;}
+  .legend span{display:flex; align-items:center; gap:6px;}
+  .legend i{width:8px;height:8px;border-radius:50%;display:inline-block;}
+
+  /* PROBLEM */
+  .problem{background:var(--panel); border-top:1px solid var(--line); border-bottom:1px solid var(--line);}
+  .problem .wrap{display:grid; grid-template-columns:0.9fr 1.1fr; gap:48px; align-items:start;}
+  .problem h2{font-size:30px; margin-bottom:16px;}
+  .problem p{color:var(--ink-soft); font-size:17.5px;}
+  .problem .quote{
+    font-family:'Newsreader', serif; font-style:italic; font-size:20px;
+    color:var(--ink); border-left:2px solid var(--amber); padding-left:20px;
+  }
+
+  /* FEATURES */
+  .features h2{font-size:30px; margin-bottom:6px;}
+  .features .sub{color:var(--ink-soft); margin-bottom:38px; max-width:60ch;}
+  .feat-grid{display:grid; grid-template-columns:repeat(5,1fr); gap:1px; background:var(--line); border:1px solid var(--line);}
+  .feat-card{background:var(--paper); padding:22px 18px; min-height:190px; display:flex; flex-direction:column; gap:10px;}
+  .feat-card .idx{font-family:'IBM Plex Mono',monospace; font-size:11px; color:var(--teal-deep);}
+  .feat-card .ic{width:30px;height:30px;}
+  .feat-card h3{font-size:16.5px; line-height:1.25;}
+  .feat-card p{font-size:13.5px; color:var(--ink-soft); margin:0; line-height:1.45;}
+
+  /* ARCHITECTURE */
+  .arch{background:var(--panel); border-top:1px solid var(--line); border-bottom:1px solid var(--line);}
+  .arch h2{font-size:30px; margin-bottom:34px;}
+  .arch-cols{display:grid; grid-template-columns:repeat(4,1fr); gap:20px;}
+  .arch-col{background:var(--paper); border:1px solid var(--line); padding:18px;}
+  .arch-col .label{font-family:'IBM Plex Mono',monospace; font-size:11px; text-transform:uppercase; letter-spacing:0.08em; color:var(--amber); margin-bottom:12px; display:block;}
+  .arch-col ul{list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:8px;}
+  .arch-col li{font-size:14.5px; color:var(--ink); padding-left:14px; position:relative;}
+  .arch-col li::before{content:"—"; position:absolute; left:0; color:var(--teal);}
+
+  /* DATA STRATEGY */
+  .data h2{font-size:30px; margin-bottom:6px;}
+  .data .sub{color:var(--ink-soft); margin-bottom:30px; max-width:64ch;}
+  .data-grid{display:grid; grid-template-columns:1fr 1fr; gap:32px; align-items:start;}
+  .data-flow{display:flex; flex-direction:column; gap:0;}
+  .flow-step{display:flex; gap:14px; padding:14px 0; border-bottom:1px dashed var(--line);}
+  .flow-step:last-child{border-bottom:none;}
+  .flow-step .fnum{font-family:'IBM Plex Mono',monospace; font-size:12px; color:var(--teal-deep); padding-top:2px;}
+  .flow-step h4{font-family:'Space Grotesk',sans-serif; font-size:15.5px; margin:0 0 4px;}
+  .flow-step p{margin:0; font-size:13.8px; color:var(--ink-soft);}
+
+  .sector-table{width:100%; border-collapse:collapse; font-family:'IBM Plex Mono',monospace; font-size:12.5px;}
+  .sector-table th{text-align:left; font-weight:500; color:var(--ink-soft); padding:8px 8px; border-bottom:1px solid var(--line); text-transform:uppercase; font-size:10.5px; letter-spacing:0.06em;}
+  .sector-table td{padding:7px 8px; border-bottom:1px solid var(--line);}
+  .sector-table tr:last-child td{border-bottom:none;}
+  .status-dot{display:inline-block; width:7px; height:7px; border-radius:50%; margin-right:6px;}
+
+  /* OFFLINE */
+  .offline{background:var(--panel); border-top:1px solid var(--line); border-bottom:1px solid var(--line);}
+  .offline h2{font-size:30px; margin-bottom:34px;}
+  .off-steps{display:grid; grid-template-columns:repeat(3,1fr); gap:20px;}
+  .off-card{background:var(--paper); border:1px solid var(--line); padding:22px;}
+  .off-card .tag{font-family:'IBM Plex Mono',monospace; font-size:11px; color:var(--amber); text-transform:uppercase; letter-spacing:0.06em; display:block; margin-bottom:10px;}
+  .off-card h3{font-size:17px; margin-bottom:8px;}
+  .off-card p{font-size:14px; color:var(--ink-soft); margin:0;}
+
+  /* ROADMAP */
+  .roadmap h2{font-size:30px; margin-bottom:30px;}
+  .road-grid{display:grid; grid-template-columns:1fr 1fr 1fr; gap:0; border:1px solid var(--line);}
+  .road-col{padding:20px; border-right:1px solid var(--line);}
+  .road-col:last-child{border-right:none;}
+  .road-col .label{font-family:'IBM Plex Mono',monospace; font-size:11px; text-transform:uppercase; letter-spacing:0.08em; margin-bottom:14px; display:block;}
+  .road-col.done .label{color:var(--ok);}
+  .road-col.now .label{color:var(--amber);}
+  .road-col.next .label{color:var(--ink-soft);}
+  .road-col ul{list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:10px;}
+  .road-col li{font-size:14px; padding-left:18px; position:relative; color:var(--ink);}
+  .road-col.done li::before{content:"✓"; position:absolute; left:0; color:var(--ok); font-family:'IBM Plex Mono',monospace; font-size:12px;}
+  .road-col.now li::before{content:"○"; position:absolute; left:0; color:var(--amber); font-family:'IBM Plex Mono',monospace; font-size:12px;}
+  .road-col.next li::before{content:"·"; position:absolute; left:2px; color:var(--ink-soft); font-size:18px; top:-4px;}
+
+  /* PHOTO STRIP */
+  .photo-strip{padding:0;}
+  .photo-strip .wrap{padding:78px 28px;}
+  .photo-frame{
+    background:var(--paper); border:1px solid var(--line); padding:12px;
+    display:grid; grid-template-columns:1.3fr 1fr; gap:12px;
+  }
+  .photo-frame img{width:100%; height:280px; object-fit:cover; display:block;}
+  .photo-note{padding:8px 4px; display:flex; flex-direction:column; justify-content:center; gap:12px;}
+  .photo-note .eyebrow{margin-bottom:2px;}
+  .photo-note p{font-size:15px; color:var(--ink-soft); margin:0;}
+
+  footer{
+    border-top:1px solid var(--line);
+    padding:40px 28px 50px;
+  }
+  footer .wrap{display:flex; justify-content:space-between; align-items:flex-end; flex-wrap:wrap; gap:20px;}
+  footer .fl{font-family:'IBM Plex Mono',monospace; font-size:12px; color:var(--ink-soft); line-height:1.8;}
+  footer .dl{
+    font-family:'IBM Plex Mono',monospace; font-size:12.5px;
+    display:inline-flex; align-items:center; gap:8px;
+    padding:10px 16px; border:1px solid var(--ink); color:var(--ink);
+    text-decoration:none;
+  }
+  footer .dl:hover{background:var(--ink); color:var(--bg);}
+
+  @media (max-width:860px){
+    .hero-grid, .problem .wrap, .data-grid, .photo-frame{grid-template-columns:1fr;}
+    .feat-grid{grid-template-columns:repeat(2,1fr);}
+    .arch-cols{grid-template-columns:repeat(2,1fr);}
+    .off-steps{grid-template-columns:1fr;}
+    .road-grid{grid-template-columns:1fr;}
+    .road-col{border-right:none; border-bottom:1px solid var(--line);}
+    header.top nav{display:none;}
+  }
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="brand"><span class="dot"></span>ORCA <span class="mono" style="font-size:11px;color:var(--ink-soft);font-weight:400;">/ SIH 2026</span></div>
+  <nav>
+    <a href="#problem">Problem</a>
+    <a href="#solution">Solution</a>
+    <a href="#architecture">Architecture</a>
+    <a href="#data">Data</a>
+    <a href="#roadmap">Status</a>
+  </nav>
+</header>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="wrap hero-grid">
+    <div>
+      <div class="eyebrow">PS 26176 · ISRO · Smart India Hackathon</div>
+      <h1>ORCA<span>.</span></h1>
+      <p class="lede">Marine EcOsystem Reasoning with Collaborative Agents — a conversational, multi-agent platform that turns satellite ocean data into a fisherman's daily decision: where to go, and whether it's safe.</p>
+      <div class="tagchips">
+        <span class="chip">AGENTIC AI</span>
+        <span class="chip">OFFLINE-FIRST PWA</span>
+        <span class="chip">HINDI + TAMIL</span>
+        <span class="chip">LIVE INCOIS DATA</span>
+        <span class="chip">GEOFENCING</span>
+      </div>
+    </div>
+    <div class="coast-card chart-frame">
+      <div class="tick-tl"></div><div class="tick-tr"></div><div class="tick-bl"></div><div class="tick-br"></div>
+      <svg viewBox="0 0 300 420" xmlns="http://www.w3.org/2000/svg">
+        <!-- simplified India coastline silhouette, west + east -->
+        <path d="M120 10 C90 30 78 70 82 110 C86 150 70 180 66 215 C62 250 74 275 70 305 C66 335 85 355 100 380 L118 400"
+              fill="none" stroke="#C6D8D0" stroke-width="2"/>
+        <path d="M150 15 C175 40 190 75 185 115 C180 155 200 185 205 220 C210 255 195 280 200 310 C205 340 185 360 168 385 L152 402"
+              fill="none" stroke="#C6D8D0" stroke-width="2"/>
+        <path d="M120 10 L150 15" stroke="#C6D8D0" stroke-width="2"/>
+        <!-- sector dots, west coast top-to-bottom then east coast bottom-to-top, colored by real status -->
+        <!-- SEC001 Gujarat - no data -->
+        <circle cx="83" cy="35" r="5" fill="#B5533F"/>
+        <text x="95" y="39" class="mono" font-size="9" fill="#4A625A">SEC001 GJ</text>
+        <!-- SEC002 Maharashtra - ok -->
+        <circle cx="79" cy="90" r="5" fill="#3E8E5A"/>
+        <text x="91" y="94" class="mono" font-size="9" fill="#4A625A">SEC002 MH</text>
+        <!-- SEC003 Goa - ok -->
+        <circle cx="70" cy="140" r="5" fill="#3E8E5A"/>
+        <text x="82" y="144" class="mono" font-size="9" fill="#4A625A">SEC003 GA</text>
+        <!-- SEC004 Karnataka - ok -->
+        <circle cx="65" cy="185" r="5" fill="#3E8E5A"/>
+        <text x="77" y="189" class="mono" font-size="9" fill="#4A625A">SEC004 KA</text>
+        <!-- SEC005 Kerala - ok -->
+        <circle cx="72" cy="260" r="5" fill="#3E8E5A"/>
+        <text x="84" y="264" class="mono" font-size="9" fill="#4A625A">SEC005 KL</text>
+        <!-- SEC014 Lakshadweep - ok, offset island -->
+        <circle cx="30" cy="240" r="5" fill="#3E8E5A"/>
+        <text x="10" y="228" class="mono" font-size="9" fill="#4A625A">SEC014 LD</text>
+        <!-- SEC006 South TN - no data -->
+        <circle cx="90" cy="365" r="5" fill="#B5533F"/>
+        <text x="102" y="369" class="mono" font-size="9" fill="#4A625A">SEC006 TN-S</text>
+        <!-- SEC007 North TN - ok -->
+        <circle cx="152" cy="360" r="5" fill="#3E8E5A"/>
+        <text x="164" y="364" class="mono" font-size="9" fill="#4A625A">SEC007 TN-N</text>
+        <!-- SEC008 South AP - ok -->
+        <circle cx="188" cy="300" r="5" fill="#3E8E5A"/>
+        <text x="200" y="304" class="mono" font-size="9" fill="#4A625A">SEC008 AP-S</text>
+        <!-- SEC009 North AP - no data -->
+        <circle cx="202" cy="245" r="5" fill="#B5533F"/>
+        <text x="214" y="249" class="mono" font-size="9" fill="#4A625A">SEC009 AP-N</text>
+        <!-- SEC010 Odisha - no data -->
+        <circle cx="192" cy="180" r="5" fill="#B5533F"/>
+        <text x="204" y="184" class="mono" font-size="9" fill="#4A625A">SEC010 OD</text>
+        <!-- SEC011 West Bengal - no data -->
+        <circle cx="178" cy="120" r="5" fill="#B5533F"/>
+        <text x="190" y="124" class="mono" font-size="9" fill="#4A625A">SEC011 WB</text>
+        <!-- SEC012 Andaman - no data, offset -->
+        <circle cx="245" cy="230" r="5" fill="#B5533F"/>
+        <text x="257" y="234" class="mono" font-size="9" fill="#4A625A">SEC012 AN</text>
+        <!-- SEC013 Nicobar - no data, offset -->
+        <circle cx="248" cy="280" r="5" fill="#B5533F"/>
+        <text x="260" y="284" class="mono" font-size="9" fill="#4A625A">SEC013 NI</text>
+      </svg>
+      <div class="coast-caption">
+        <span>LIVE PFZ SECTOR STATUS · CAPTURED 30 AUG 2026</span>
+        <span class="legend">
+          <span><i style="background:#3E8E5A;"></i>advisory live</span>
+          <span><i style="background:#B5533F;"></i>no data (cloud cover)</span>
+        </span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PROBLEM -->
+<section class="problem" id="problem">
+  <div class="wrap">
+    <div>
+      <div class="eyebrow">The problem</div>
+      <h2>Ocean data is abundant.<br>Answers aren't.</h2>
+      <p>ISRO, INCOIS and global agencies publish enormous volumes of Earth Observation data daily — SST, chlorophyll, weather, tides, cyclone alerts. Fishermen, researchers and coastal authorities still can't easily ask "is it safe to go out tomorrow?" and get a synthesized, evidence-based answer.</p>
+    </div>
+    <div class="quote">
+      "Where is the nearest Potential Fishing Zone today? Is it safe to venture into the sea tomorrow morning?" — the exact questions ISRO's brief asks us to answer conversationally, in Indian regional languages, with reasoning attached.
+    </div>
+  </div>
+</section>
+
+<!-- SOLUTION / FEATURES -->
+<section class="features" id="solution">
+  <div class="wrap">
+    <div class="eyebrow">What we're building</div>
+    <h2>Five features, one agent platform.</h2>
+    <p class="sub">Scoped deliberately out of ISRO's full brief for a working, demonstrable hackathon build — not a slide of everything the platform could theoretically do.</p>
+    <div class="feat-grid">
+      <div class="feat-card">
+        <span class="idx">01 / LANG</span>
+        <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="#1B7A8C" stroke-width="1.6"><path d="M4 5h16M4 12h10M4 19h13"/></svg>
+        <h3>Hindi + Tamil conversation</h3>
+        <p>Bhashini API for translation in/out; agent reasoning stays in English underneath, so language is a wrapper, not core complexity.</p>
+      </div>
+      <div class="feat-card">
+        <span class="idx">02 / PFZ</span>
+        <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="#1B7A8C" stroke-width="1.6"><circle cx="12" cy="10" r="3"/><path d="M12 21c4-5 7-8.5 7-12a7 7 0 10-14 0c0 3.5 3 7 7 12z"/></svg>
+        <h3>Nearest PFZ by GPS</h3>
+        <p>Live INCOIS advisory data, matched to the closest landing centre from device location, resolved to a plottable zone.</p>
+      </div>
+      <div class="feat-card">
+        <span class="idx">03 / CHAT</span>
+        <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="#1B7A8C" stroke-width="1.6"><path d="M4 5h16v11H8l-4 4V5z"/></svg>
+        <h3>Agentic reasoning</h3>
+        <p>Planner agent decomposes a query, routes to specialist agents, and shows its evidence trail — not just an answer.</p>
+      </div>
+      <div class="feat-card">
+        <span class="idx">04 / RISK</span>
+        <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="#1B7A8C" stroke-width="1.6"><path d="M12 3l9 16H3L12 3z"/><path d="M12 10v4M12 17h.01"/></svg>
+        <h3>Hazard zones</h3>
+        <p>High-wave, cyclone and lightning advisories overlaid on the map, cross-referenced against the fisherman's location.</p>
+      </div>
+      <div class="feat-card">
+        <span class="idx">05 / GEO</span>
+        <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="#1B7A8C" stroke-width="1.6"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M4 10h16M10 4v16"/></svg>
+        <h3>Geofencing alerts</h3>
+        <p>Live device location checked against EEZ / restricted-zone polygons; proactive warning on approach, no query needed.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ARCHITECTURE -->
+<section class="arch" id="architecture">
+  <div class="wrap">
+    <div class="eyebrow">How it's built</div>
+    <h2>Stack &amp; agent roles</h2>
+    <div class="arch-cols">
+      <div class="arch-col">
+        <span class="label">Client / PWA</span>
+        <ul>
+          <li>HTML / CSS / JS</li>
+          <li>Service Worker + Cache API</li>
+          <li>Web App Manifest (standalone)</li>
+          <li>Leaflet + Turf.js</li>
+          <li>navigator.geolocation</li>
+        </ul>
+      </div>
+      <div class="arch-col">
+        <span class="label">Agent layer</span>
+        <ul>
+          <li>Planner agent</li>
+          <li>Data-discovery agent</li>
+          <li>Weather / risk agent</li>
+          <li>Geospatial agent</li>
+          <li>LangGraph orchestration</li>
+        </ul>
+      </div>
+      <div class="arch-col">
+        <span class="label">Language</span>
+        <ul>
+          <li>Bhashini API</li>
+          <li>AI4Bharat IndicTrans2</li>
+          <li>Hindi + Tamil at launch</li>
+          <li>English core reasoning</li>
+        </ul>
+      </div>
+      <div class="arch-col">
+        <span class="label">Data sources</span>
+        <ul>
+          <li>INCOIS PFZ advisory</li>
+          <li>MOSDAC / Bhuvan</li>
+          <li>IMD forecasts &amp; alerts</li>
+          <li>EEZ / MPA boundary layers</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- DATA STRATEGY -->
+<section class="data" id="data">
+  <div class="wrap">
+    <div class="eyebrow">Data pipeline — verified this week</div>
+    <h2>A real, working INCOIS integration</h2>
+    <p class="sub">Not a mock dataset. We reverse-engineered INCOIS's Marine Fisheries Advisory session flow and pulled live, dated PFZ data for six coastal sectors.</p>
+    <div class="data-grid">
+      <div class="data-flow">
+        <div class="flow-step">
+          <span class="fnum mono">01</span>
+          <div><h4>Session bootstrap</h4><p>GET the TextDataHome landing page first — establishes the JSESSIONID cookie the data endpoint requires.</p></div>
+        </div>
+        <div class="flow-step">
+          <span class="fnum mono">02</span>
+          <div><h4>Sector fetch</h4><p>GET /MarineFisheries/TextData?secid=SECxxx with that session + referer — returns the live advisory HTML table.</p></div>
+        </div>
+        <div class="flow-step">
+          <span class="fnum mono">03</span>
+          <div><h4>Parse &amp; normalise</h4><p>pandas.read_html extracts the table; bearing, distance-range and DMS coordinates are converted to a clean per-village schema.</p></div>
+        </div>
+        <div class="flow-step">
+          <span class="fnum mono">04</span>
+          <div><h4>Geo-resolve</h4><p>Origin lat/long + bearing + distance → actual plottable PFZ boundary points, via geodesic destination calculation.</p></div>
+        </div>
+        <div class="flow-step">
+          <span class="fnum mono">05</span>
+          <div><h4>Cache for offline</h4><p>Result set stored client-side — this is the exact bundle a fisherman syncs before losing signal at sea.</p></div>
+        </div>
+      </div>
+      <div class="chart-frame" style="background:var(--paper); padding:18px;">
+        <div class="tick-tl"></div><div class="tick-tr"></div><div class="tick-bl"></div><div class="tick-br"></div>
+        <table class="sector-table">
+          <thead><tr><th>secid</th><th>Region</th><th>Advisory</th></tr></thead>
+          <tbody>
+            <tr><td>SEC001</td><td>Gujarat</td><td><span class="status-dot" style="background:#B5533F;"></span>no data</td></tr>
+            <tr><td>SEC002</td><td>Maharashtra</td><td><span class="status-dot" style="background:#3E8E5A;"></span>live</td></tr>
+            <tr><td>SEC003</td><td>Goa</td><td><span class="status-dot" style="background:#3E8E5A;"></span>live</td></tr>
+            <tr><td>SEC004</td><td>Karnataka</td><td><span class="status-dot" style="background:#3E8E5A;"></span>live</td></tr>
+            <tr><td>SEC005</td><td>Kerala</td><td><span class="status-dot" style="background:#3E8E5A;"></span>live</td></tr>
+            <tr><td>SEC006</td><td>South Tamil Nadu</td><td><span class="status-dot" style="background:#B5533F;"></span>no data</td></tr>
+            <tr><td>SEC007</td><td>North Tamil Nadu</td><td><span class="status-dot" style="background:#3E8E5A;"></span>live</td></tr>
+            <tr><td>SEC008</td><td>South Andhra Pradesh</td><td><span class="status-dot" style="background:#3E8E5A;"></span>live</td></tr>
+            <tr><td>SEC009</td><td>North Andhra Pradesh</td><td><span class="status-dot" style="background:#B5533F;"></span>no data</td></tr>
+            <tr><td>SEC010</td><td>Odisha</td><td><span class="status-dot" style="background:#B5533F;"></span>no data</td></tr>
+            <tr><td>SEC011</td><td>West Bengal</td><td><span class="status-dot" style="background:#B5533F;"></span>no data</td></tr>
+            <tr><td>SEC012</td><td>Andaman</td><td><span class="status-dot" style="background:#B5533F;"></span>no data</td></tr>
+            <tr><td>SEC013</td><td>Nicobar</td><td><span class="status-dot" style="background:#B5533F;"></span>no data</td></tr>
+            <tr><td>SEC014</td><td>Lakshadweep</td><td><span class="status-dot" style="background:#3E8E5A;"></span>live</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- OFFLINE -->
+<section class="offline">
+  <div class="wrap">
+    <div class="eyebrow">Built for the real coast</div>
+    <h2>Offline-first, because signal ends 15km out</h2>
+    <div class="off-steps">
+      <div class="off-card">
+        <span class="tag">On land</span>
+        <h3>Sync before departure</h3>
+        <p>At the harbour, full signal: app pulls today's PFZ, weather and alerts into local cache. Shows exact sync timestamp.</p>
+      </div>
+      <div class="off-card">
+        <span class="tag">At sea</span>
+        <h3>Runs on cached data</h3>
+        <p>Beyond coverage, the PWA serves everything from Cache Storage / IndexedDB — no network calls, no failure state.</p>
+      </div>
+      <div class="off-card">
+        <span class="tag">Known limit</span>
+        <h3>New alerts still need SMS</h3>
+        <p>A cyclone forming after departure can't reach a phone with no signal — stated honestly, not hidden in the pitch.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ROADMAP -->
+<section class="roadmap" id="roadmap">
+  <div class="wrap">
+    <div class="eyebrow">Where we are</div>
+    <h2>Build status</h2>
+    <div class="road-grid chart-frame">
+      <div class="tick-tl"></div><div class="tick-tr"></div><div class="tick-bl"></div><div class="tick-br"></div>
+      <div class="road-col done">
+        <span class="label mono">Done</span>
+        <ul>
+          <li>Problem statement scoped to 5 features</li>
+          <li>INCOIS session + scrape pipeline working</li>
+          <li>14 sectors mapped &amp; status verified</li>
+          <li>PWA / offline architecture decided</li>
+        </ul>
+      </div>
+      <div class="road-col now">
+        <span class="label mono">In progress</span>
+        <ul>
+          <li>Coordinate normalisation (DMS → decimal)</li>
+          <li>Bearing + distance → zone geometry</li>
+          <li>Planner / agent orchestration graph</li>
+          <li>Bhashini translation wrapper</li>
+        </ul>
+      </div>
+      <div class="road-col next">
+        <span class="label mono">Next</span>
+        <ul>
+          <li>Geofencing polygon check</li>
+          <li>Service worker + cache layer</li>
+          <li>Hazard overlay on map</li>
+          <li>Demo script — 3 live query flows</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PHOTO STRIP -->
+<section class="photo-strip">
+  <div class="wrap">
+    <div class="photo-frame">
+      <img src="https://commons.wikimedia.org/wiki/Special:FilePath/Fishing%20Boat%20Sea%20Sunrise%20Uthandi%20Chennai%20Oct21%20R16%2005072.jpg" alt="Fishing boat at sea, sunrise, Tamil Nadu coast">
+      <div class="photo-note">
+        <div class="eyebrow">Who this is for</div>
+        <p>ORCA is built around the working reality of small-scale fishermen along India's coastline — decisions made before dawn, with whatever signal is left on shore.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <div class="fl">
+      ORCA — Problem Statement 26176<br>
+      Indian Space Research Organisation (ISRO) · Smart India Hackathon 2026
+    </div>
+    <a class="dl" href="credits.txt" download>↓ image-credits.txt</a>
+  </div>
+</footer>
+
+</body>
+</html>

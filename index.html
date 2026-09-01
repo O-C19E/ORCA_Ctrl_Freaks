@@ -254,7 +254,7 @@
       <p class="lede">Marine EcOsystem Reasoning with Collaborative Agents — a conversational, multi-agent platform that turns satellite ocean data into a fisherman's daily decision: where to go, and whether it's safe.</p>
       <div class="tagchips">
         <span class="chip">AGENTIC AI</span>
-        <span class="chip">OFFLINE-FIRST PWA</span>
+        <span class="chip">OFFLINE-FIRST ANDROID APP</span>
         <span class="chip">HINDI + TAMIL</span>
         <span class="chip">LIVE INCOIS DATA</span>
         <span class="chip">GEOFENCING</span>
@@ -386,13 +386,13 @@
     <h2>Stack &amp; agent roles</h2>
     <div class="arch-cols">
       <div class="arch-col">
-        <span class="label">Client / PWA</span>
+        <span class="label">Client / Android</span>
         <ul>
-          <li>HTML / CSS / JS</li>
-          <li>Service Worker + Cache API</li>
-          <li>Web App Manifest (standalone)</li>
-          <li>Leaflet + Turf.js</li>
-          <li>navigator.geolocation</li>
+          <li>Kotlin, native Android</li>
+          <li>Room database (offline cache)</li>
+          <li>FusedLocationProviderClient</li>
+          <li>Geofencing API (background)</li>
+          <li>osmdroid / Maps SDK</li>
         </ul>
       </div>
       <div class="arch-col">
@@ -431,29 +431,28 @@
 <section class="data" id="data">
   <div class="wrap">
     <div class="eyebrow">Data pipeline — verified this week</div>
-    <h2>A real, working INCOIS integration</h2>
-    <p class="sub">Not a mock dataset. We reverse-engineered INCOIS's Marine Fisheries Advisory session flow and pulled live, dated PFZ data for six coastal sectors.</p>
+    <h2>INCOIS integration</h2>
     <div class="data-grid">
       <div class="data-flow">
         <div class="flow-step">
           <span class="fnum mono">01</span>
-          <div><h4>Session bootstrap</h4><p>GET the TextDataHome landing page first — establishes the JSESSIONID cookie the data endpoint requires.</p></div>
+          <div><h4>Session bootstrap</h4><p>Establishing the JSESSIONID cookie through GET TextDataHome.</p></div>
         </div>
         <div class="flow-step">
           <span class="fnum mono">02</span>
-          <div><h4>Sector fetch</h4><p>GET /MarineFisheries/TextData?secid=SECxxx with that session + referer — returns the live advisory HTML table.</p></div>
+          <div><h4>Sector fetch</h4><p>Retrieving the live advisory table for each coastal sector.</p></div>
         </div>
         <div class="flow-step">
           <span class="fnum mono">03</span>
-          <div><h4>Parse &amp; normalise</h4><p>pandas.read_html extracts the table; bearing, distance-range and DMS coordinates are converted to a clean per-village schema.</p></div>
+          <div><h4>Parse &amp; normalise</h4><p>Extracting bearing, distance and coordinate fields into a clean schema.</p></div>
         </div>
         <div class="flow-step">
           <span class="fnum mono">04</span>
-          <div><h4>Geo-resolve</h4><p>Origin lat/long + bearing + distance → actual plottable PFZ boundary points, via geodesic destination calculation.</p></div>
+          <div><h4>Geo-resolve</h4><p>Converting bearing + distance into plottable zone coordinates.</p></div>
         </div>
         <div class="flow-step">
           <span class="fnum mono">05</span>
-          <div><h4>Cache for offline</h4><p>Result set stored client-side — this is the exact bundle a fisherman syncs before losing signal at sea.</p></div>
+          <div><h4>Cache for offline</h4><p>Storing the result locally, ready for offline use before departure.</p></div>
         </div>
       </div>
       <div class="chart-frame" style="background:var(--paper); padding:18px;">
@@ -496,7 +495,7 @@
       <div class="off-card">
         <span class="tag">At sea</span>
         <h3>Runs on cached data</h3>
-        <p>Beyond coverage, the PWA serves everything from Cache Storage / IndexedDB — no network calls, no failure state.</p>
+        <p>Beyond coverage, the app serves everything from a local Room database — no network calls, no failure state.</p>
       </div>
       <div class="off-card">
         <span class="tag">Known limit</span>
@@ -520,7 +519,7 @@
           <li>Problem statement scoped to 5 features</li>
           <li>INCOIS session + scrape pipeline working</li>
           <li>14 sectors mapped &amp; status verified</li>
-          <li>PWA / offline architecture decided</li>
+          <li>Native Android app architecture decided</li>
         </ul>
       </div>
       <div class="road-col now">
@@ -536,9 +535,10 @@
         <span class="label mono">Next</span>
         <ul>
           <li>Geofencing polygon check</li>
-          <li>Service worker + cache layer</li>
+          <li>Room database + local cache layer</li>
           <li>Hazard overlay on map</li>
           <li>Demo script — 3 live query flows</li>
+          <li>MANET prototype — Kotlin + Nearby Connections</li>
         </ul>
       </div>
     </div>
@@ -549,7 +549,7 @@
 <section class="photo-strip">
   <div class="wrap">
     <div class="photo-frame">
-      <img src="https://commons.wikimedia.org/wiki/Special:FilePath/Fishing%20Boat%20Sea%20Sunrise%20Uthandi%20Chennai%20Oct21%20R16%2005072.jpg" alt="Fishing boat at sea, sunrise, Tamil Nadu coast">
+       <img src="./image.jpg" alt="Fishing boat at sea, sunrise, Tamil Nadu coast">
       <div class="photo-note">
         <div class="eyebrow">Who this is for</div>
         <p>ORCA is built around the working reality of small-scale fishermen along India's coastline — decisions made before dawn, with whatever signal is left on shore.</p>
